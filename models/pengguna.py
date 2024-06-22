@@ -7,3 +7,4 @@ class Pengguna(BaseModel):
     nik: str
     kk: str
     kata_sandi: str
+    riwayat: list
