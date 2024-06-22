@@ -8,8 +8,7 @@ from email.message import EmailMessage
 import ssl
 import smtplib
 from typing import Annotated
-from models.pengguna import Pengguna
-from models.email import Email
+from models import Pengguna, Email
 
 
 load_dotenv()
