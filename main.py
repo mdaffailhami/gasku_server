@@ -1,5 +1,7 @@
 import os
+import random
 from dotenv import load_dotenv
+from fastapi.responses import HTMLResponse
 from pymongo import MongoClient
 from bson import ObjectId
 from fastapi import FastAPI, Body
@@ -8,7 +10,7 @@ from email.message import EmailMessage
 import ssl
 import smtplib
 from typing import Annotated
-from models import Pengguna, Email
+from models import Pengguna
 
 
 load_dotenv()
@@ -18,8 +20,15 @@ email_password = os.getenv('EMAIL_PASSWORD')
 
 app = FastAPI()
 client = MongoClient(
-    f'mongodb+srv://mdaffailhami:{database_password}@cluster0.xidkjt2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+    f'mongodb+srv://mdaffailhami:{database_password}@cluster0.xidkjt2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+)
+
 db = client.gasku
+
+
+@app.get("/")
+async def main():
+    return HTMLResponse('<center><h1>GasKu Server</h1></center>')
 
 
 @app.get('/pengguna')
@@ -71,14 +80,18 @@ def ganti_kata_sandi(id: str, kata_sandi: Annotated[str, Body()]):
     return {'status': 'success'}
 
 
-@ app.post('/send-email')
-def send_email(email: Email):
+@app.get('/kirim-email-verifikasi/{receiver}')
+def kirim_email_verifikasi(receiver: str):
     em = EmailMessage()
     em['From'] = email_address
-    em['To'] = email.receiver
-    em['subject'] = email.subject
-    em.set_content(email.message)
+    em['To'] = receiver
+    em['subject'] = 'Verifikasi GasKu'
+
+    code = str(random.randint(10000, 99999))
+    em.set_content(f'Kode verikasi kamu adalah {code}')
 
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=ssl.create_default_context()) as smtp:
         smtp.login(email_address, email_password)
-        smtp.sendmail(email_address, email.receiver, em.as_string())
+        smtp.sendmail(email_address, receiver, em.as_string())
+
+        return {'status': 'success', 'kode_verifikasi': code}
