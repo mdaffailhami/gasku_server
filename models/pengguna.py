@@ -2,9 +2,9 @@ from pydantic import BaseModel
 
 
 class Pengguna(BaseModel):
-    nama_lengkap: str
+    nama: str
     email: str
     nik: str
     kk: str
     kata_sandi: str
-    riwayat: list
+    riwayat_e_tiket: list | None = []

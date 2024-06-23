@@ -1,14 +1,17 @@
+from datetime import datetime, timedelta
 import os
+import time
 import random
+from hashlib import sha1
+import ssl
+import smtplib
+from email.message import EmailMessage
 from dotenv import load_dotenv
-from fastapi.responses import HTMLResponse
 from pymongo import MongoClient
 from bson import ObjectId
 from fastapi import FastAPI, Body
-from hashlib import sha1
-from email.message import EmailMessage
-import ssl
-import smtplib
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from typing import Annotated
 from models import Pengguna
 
@@ -19,16 +22,18 @@ email_address = os.getenv('EMAIL_ADDRESS')
 email_password = os.getenv('EMAIL_PASSWORD')
 
 app = FastAPI()
-client = MongoClient(
-    f'mongodb+srv://mdaffailhami:{database_password}@cluster0.xidkjt2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
-)
 
-db = client.gasku
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+db = MongoClient(
+    f'mongodb+srv://mdaffailhami:{database_password}@cluster0.xidkjt2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+).gasku
+db.pengguna.create_index('nik', unique=True)
 
 
 @app.get("/")
 async def main():
-    return HTMLResponse('<center><h1>GasKu Server</h1></center>')
+    return FileResponse('pages/index.html')
 
 
 @app.get('/pengguna')
@@ -38,15 +43,19 @@ def get_pengguna():
     for x in pengguna:
         x['_id'] = str(x['_id'])
 
-    return pengguna
+    return {'status': 'success', 'pengguna': pengguna}
 
 
-@app.get('/pengguna/{id}')
-def get_pengguna_by_id(id: str):
-    pengguna = db.pengguna.find_one({'_id': ObjectId(id)})
+@app.get('/pengguna/{nik}')
+def get_pengguna_by_nik(nik: str):
+    pengguna = db.pengguna.find_one({'nik': nik})
+
+    if pengguna == None:
+        return {'status': 'failed', 'pengguna': pengguna, 'message': 'Pengguna tidak ditemukan'}
+
     pengguna['_id'] = str(pengguna['_id'])
 
-    return pengguna
+    return {'status': 'success', 'pengguna': pengguna}
 
 
 @app.post('/pengguna')
@@ -55,8 +64,12 @@ def add_pengguna(pengguna: Pengguna):
     hashed_kata_sandi.update(pengguna.kata_sandi.encode('utf-8'))
     pengguna.kata_sandi = hashed_kata_sandi.hexdigest()
 
-    id = db.pengguna.insert_one(pengguna.__dict__).inserted_id
-    return {'status': 'success', 'Inserted ID': str(id)}
+    try:
+        id = db.pengguna.insert_one(pengguna.__dict__).inserted_id
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
+    else:
+        return {'status': 'success', 'Inserted ID': str(id)}
 
 
 @app.put('/pengguna/{id}')
@@ -75,12 +88,14 @@ def ganti_kata_sandi(id: str, kata_sandi: Annotated[str, Body()]):
     hashed_kata_sandi.update(kata_sandi.encode('utf-8'))
     kata_sandi = hashed_kata_sandi.hexdigest()
 
-    db.pengguna.update_one({'_id': ObjectId(id)}, {
-                           "$set": {'kata_sandi': kata_sandi}})
+    db.pengguna.update_one(
+        {'_id': ObjectId(id)},
+        {"$set": {'kata_sandi': kata_sandi}}
+    )
     return {'status': 'success'}
 
 
-@app.get('/kirim-email-verifikasi/{receiver}')
+@app.post('/kirim-email-verifikasi/{receiver}')
 def kirim_email_verifikasi(receiver: str):
     em = EmailMessage()
     em['From'] = email_address
@@ -95,3 +110,33 @@ def kirim_email_verifikasi(receiver: str):
         smtp.sendmail(email_address, receiver, em.as_string())
 
         return {'status': 'success', 'kode_verifikasi': code}
+
+
+@app.get('/konfirmasi-e-tiket/{nik}/{key}')
+def konfirmasi_e_tiket_page():
+    return FileResponse('pages/konfirmasi-e-tiket.html')
+
+
+@app.post('/konfirmasi-e-tiket/{nik}/{key}')
+def konfirmasi_e_tiket(nik: str, key: str):
+    now = datetime.now()
+    monday = now - timedelta(days=now.weekday())
+    monday_formatted = monday.strftime('%d-%m-%Y')
+
+    key_comparison = sha1()
+    key_comparison.update(f'{nik}({monday_formatted})'.encode('utf-8'))
+    key_comparison = key_comparison.hexdigest()
+
+    if key == key_comparison:
+        result = db.pengguna.update_one(
+            {'nik': nik},
+            {"$addToSet": {'riwayat_e_tiket': monday_formatted}}
+        )
+
+        if result.modified_count == 0:
+            return {'status': 'failed', 'message': 'Gagal Mengkonfirmasi, Tiket Sudah Pernah Dikonfirmasi'}
+        else:
+            return {'status': 'success'}
+
+    else:
+        return {'status': 'failed', 'message': 'Wrong key'}
