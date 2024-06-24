@@ -7,13 +7,12 @@ import ssl
 import smtplib
 from email.message import EmailMessage
 from dotenv import load_dotenv
-from pymongo import MongoClient
-from bson import ObjectId
+from pymongo import TEXT, MongoClient
 from fastapi import FastAPI, Body
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from typing import Annotated
 from models import Pengguna
+from models.pangkalan import Pangkalan
 
 
 load_dotenv()
@@ -28,7 +27,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 db = MongoClient(
     f'mongodb+srv://mdaffailhami:{database_password}@cluster0.xidkjt2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
 ).gasku
+
 db.pengguna.create_index('nik', unique=True)
+db.pangkalan.create_index(
+    [('nama', TEXT), ('alamat', TEXT)], name='text_index')
 
 
 @app.get("/")
@@ -38,24 +40,32 @@ async def main():
 
 @app.get('/pengguna')
 def get_pengguna():
-    pengguna = list(db.pengguna.find())
+    try:
+        pengguna = list(db.pengguna.find())
 
-    for x in pengguna:
-        x['_id'] = str(x['_id'])
+        for x in pengguna:
+            x['_id'] = str(x['_id'])
 
-    return {'status': 'success', 'pengguna': pengguna}
+        return {'status': 'success', 'pengguna': pengguna}
+
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
 
 
 @app.get('/pengguna/{nik}')
 def get_pengguna_by_nik(nik: str):
-    pengguna = db.pengguna.find_one({'nik': nik})
+    try:
 
-    if pengguna == None:
-        return {'status': 'failed', 'pengguna': pengguna, 'message': 'Pengguna tidak ditemukan'}
+        pengguna = db.pengguna.find_one({'nik': nik})
 
-    pengguna['_id'] = str(pengguna['_id'])
+        if pengguna == None:
+            return {'status': 'failed', 'pengguna': pengguna, 'message': 'Pengguna tidak ditemukan'}
 
-    return {'status': 'success', 'pengguna': pengguna}
+        pengguna['_id'] = str(pengguna['_id'])
+
+        return {'status': 'success', 'pengguna': pengguna}
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
 
 
 @app.post('/pengguna')
@@ -81,13 +91,75 @@ def update_pengguna(nik: str, pengguna: Pengguna):
     hashed_kata_sandi.update(pengguna.kata_sandi.encode('utf-8'))
     pengguna.kata_sandi = hashed_kata_sandi.hexdigest()
 
-    response = db.pengguna.update_one(
-        {'nik': nik}, {"$set": pengguna.__dict__})
+    try:
 
-    if response.matched_count == 0:
-        return {'status': 'failed', 'message': 'Pengguna tidak ditemukan'}
+        response = db.pengguna.update_one(
+            {'nik': nik}, {"$set": pengguna.__dict__})
 
-    return {'status': 'success'}
+        if response.matched_count == 0:
+            return {'status': 'failed', 'message': 'Pengguna tidak ditemukan'}
+
+        return {'status': 'success'}
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
+
+
+@app.get('/pangkalan')
+def get_pangkalan(search: str | None = None):
+    try:
+        pangkalan = list(
+            db.pangkalan.find()
+        ) if search is None else list(
+            db.pangkalan.find({'$text': {'$search': search}})
+        )
+
+        for x in pangkalan:
+            x['_id'] = str(x['_id'])
+
+        return {'status': 'success', 'pangkalan': pangkalan}
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
+
+
+@app.get('/pangkalan/{id}')
+def get_pangkalan_by_id(id: str):
+    try:
+        pangkalan = db.pangkalan.find_one({'_id': id})
+
+        if pangkalan == None:
+            return {'status': 'failed', 'pangkalan': pangkalan, 'message': 'Pangkalan tidak ditemukan'}
+
+        pangkalan['_id'] = str(pangkalan['_id'])
+
+        return {'status': 'success', 'pangkalan': pangkalan}
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
+
+
+@app.post('/pangkalan')
+def add_pangkalan(pangkalan: Pangkalan):
+    try:
+        id = db.pangkalan.insert_one(pangkalan.__dict__).inserted_id
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
+    else:
+        return {'status': 'success', 'Inserted ID': str(id)}
+
+
+@app.put('/pangkalan/{id}')
+def update_pangkalan(id: str, pangkalan: Pangkalan):
+    try:
+
+        response = db.pangkalan.update_one(
+            {'_id': id}, {"$set": pangkalan.__dict__})
+
+        if response.matched_count == 0:
+            return {'status': 'failed', 'message': 'Pangkalan tidak ditemukan'}
+
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
+    else:
+        return {'status': 'success'}
 
 
 @app.put('/ganti-kata-sandi/{nik}')
@@ -121,11 +193,17 @@ def kirim_email_verifikasi(receiver: str):
     code = str(random.randint(10000, 99999))
     em.set_content(f'Kode verikasi kamu adalah {code}')
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=ssl.create_default_context()) as smtp:
+    smtp = smtplib.SMTP_SSL('smtp.gmail.com', 465,
+                            context=ssl.create_default_context())
+    try:
         smtp.login(email_address, email_password)
         smtp.sendmail(email_address, receiver, em.as_string())
 
         return {'status': 'success', 'kode_verifikasi': code}
+    except smtplib.SMTPRecipientsRefused as e:
+        return {'status': 'failed', 'code': e.recipients[receiver][0], 'message': str(e)}
+    finally:
+        smtp.close()
 
 
 @app.get('/konfirmasi-e-tiket/{nik}/{key}')
