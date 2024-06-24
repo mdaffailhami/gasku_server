@@ -67,32 +67,48 @@ def add_pengguna(pengguna: Pengguna):
     try:
         id = db.pengguna.insert_one(pengguna.__dict__).inserted_id
     except Exception as e:
+        if e.code == 11000:
+            return {'status': 'failed', 'message': 'NIK sudah terdaftar'}
+
         return {'status': 'failed', 'message': str(e)}
     else:
         return {'status': 'success', 'Inserted ID': str(id)}
 
 
-@app.put('/pengguna/{id}')
-def update_pengguna(id: str, pengguna: Pengguna):
+@app.put('/pengguna/{nik}')
+def update_pengguna(nik: str, pengguna: Pengguna):
     hashed_kata_sandi = sha1()
     hashed_kata_sandi.update(pengguna.kata_sandi.encode('utf-8'))
     pengguna.kata_sandi = hashed_kata_sandi.hexdigest()
 
-    db.pengguna.update_one({'_id': ObjectId(id)}, {"$set": pengguna.__dict__})
+    response = db.pengguna.update_one(
+        {'nik': nik}, {"$set": pengguna.__dict__})
+
+    if response.matched_count == 0:
+        return {'status': 'failed', 'message': 'Pengguna tidak ditemukan'}
+
     return {'status': 'success'}
 
 
-@app.put('/ganti-kata-sandi/{id}')
-def ganti_kata_sandi(id: str, kata_sandi: Annotated[str, Body()]):
+@app.put('/ganti-kata-sandi/{nik}')
+def ganti_kata_sandi(nik: str, kata_sandi: str = Body(embed=True)):
+    print(kata_sandi)
     hashed_kata_sandi = sha1()
     hashed_kata_sandi.update(kata_sandi.encode('utf-8'))
     kata_sandi = hashed_kata_sandi.hexdigest()
 
-    db.pengguna.update_one(
-        {'_id': ObjectId(id)},
-        {"$set": {'kata_sandi': kata_sandi}}
-    )
-    return {'status': 'success'}
+    try:
+        response = db.pengguna.update_one(
+            {'nik': nik},
+            {"$set": {'kata_sandi': kata_sandi}}
+        )
+
+        if response.matched_count == 0:
+            return {'status': 'failed', 'message': 'Pengguna tidak ditemukan'}
+
+        return {'status': 'success'}
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
 
 
 @app.post('/kirim-email-verifikasi/{receiver}')
