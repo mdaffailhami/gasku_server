@@ -162,7 +162,7 @@ def update_pangkalan(id: str, pangkalan: Pangkalan):
         return {'status': 'success'}
 
 
-@app.put('/ganti-kata-sandi/{nik}')
+@app.patch('/ganti-kata-sandi/{nik}')
 def ganti_kata_sandi(nik: str, kata_sandi: str = Body(embed=True)):
     print(kata_sandi)
     hashed_kata_sandi = sha1()
