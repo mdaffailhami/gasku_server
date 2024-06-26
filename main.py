@@ -6,6 +6,7 @@ from hashlib import sha1
 import ssl
 import smtplib
 from email.message import EmailMessage
+from bson import ObjectId
 from dotenv import load_dotenv
 from pymongo import TEXT, MongoClient
 from fastapi import FastAPI, Body
@@ -86,10 +87,11 @@ def add_pengguna(pengguna: Pengguna):
 
 
 @app.put('/pengguna/{nik}')
-def update_pengguna(nik: str, pengguna: Pengguna):
-    hashed_kata_sandi = sha1()
-    hashed_kata_sandi.update(pengguna.kata_sandi.encode('utf-8'))
-    pengguna.kata_sandi = hashed_kata_sandi.hexdigest()
+def update_pengguna(nik: str, pengguna: Pengguna, hash: str | None = 'false'):
+    if hash == 'true':
+        hashed_kata_sandi = sha1()
+        hashed_kata_sandi.update(pengguna.kata_sandi.encode('utf-8'))
+        pengguna.kata_sandi = hashed_kata_sandi.hexdigest()
 
     try:
 
@@ -124,7 +126,7 @@ def get_pangkalan(search: str | None = None):
 @app.get('/pangkalan/{id}')
 def get_pangkalan_by_id(id: str):
     try:
-        pangkalan = db.pangkalan.find_one({'_id': id})
+        pangkalan = db.pangkalan.find_one({'_id': ObjectId(id)})
 
         if pangkalan == None:
             return {'status': 'failed', 'pangkalan': pangkalan, 'message': 'Pangkalan tidak ditemukan'}
