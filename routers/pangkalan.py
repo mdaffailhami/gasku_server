@@ -1,7 +1,7 @@
 
 from hashlib import sha1
 from bson import ObjectId
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
 from db import db
 from models import Pangkalan
 
@@ -55,12 +55,17 @@ def add_pangkalan(pangkalan: Pangkalan):
         return {'status': 'success', 'Inserted ID': str(id)}
 
 
-@pangkalan_router.put('/pangkalan/{id}')
-def update_pangkalan(id: str, pangkalan: Pangkalan):
-    try:
+@pangkalan_router.patch('/pangkalan/{id}')
+def update_pangkalan(id: str, data: dict = Body()):
+    if 'kata_sandi' in data:
+        hashed_kata_sandi = sha1()
+        hashed_kata_sandi.update(data['kata_sandi'].encode('utf-8'))
+        data['kata_sandi'] = hashed_kata_sandi.hexdigest()
 
+    try:
         response = db.pangkalan.update_one(
-            {'_id': id}, {"$set": pangkalan.__dict__})
+            {'_id': ObjectId(id)}, {"$set": data}
+        )
 
         if response.matched_count == 0:
             return {'status': 'failed', 'message': 'Pangkalan tidak ditemukan'}
