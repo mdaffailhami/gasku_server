@@ -140,6 +140,10 @@ def get_pangkalan_by_id(id: str):
 
 @app.post('/pangkalan')
 def add_pangkalan(pangkalan: Pangkalan):
+    hashed_kata_sandi = sha1()
+    hashed_kata_sandi.update(pangkalan.kata_sandi.encode('utf-8'))
+    pangkalan.kata_sandi = hashed_kata_sandi.hexdigest()
+
     try:
         id = db.pangkalan.insert_one(pangkalan.__dict__).inserted_id
     except Exception as e:

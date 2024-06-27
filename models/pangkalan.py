@@ -11,6 +11,7 @@ class Pangkalan(BaseModel):
     email: str
     telepon: str
     gmap: str
+    kata_sandi: str
     coordinates: tuple[float, float]
     foto: list | None = []
-    ulasan: dict | None = {}
+    ulasan: list | None = []
