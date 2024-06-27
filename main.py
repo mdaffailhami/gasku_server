@@ -1,9 +1,10 @@
 from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from routers import pages_router, pengguna_router, pangkalan_router, others_router
 
-load_dotenv()
 
 app = FastAPI()
 
