@@ -14,6 +14,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from models import Pengguna
 from models.pangkalan import Pangkalan
+import pages
 
 
 load_dotenv()
@@ -23,6 +24,7 @@ email_password = os.getenv('EMAIL_PASSWORD')
 
 app = FastAPI()
 
+app.include_router(pages.router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 db = MongoClient(
@@ -32,11 +34,6 @@ db = MongoClient(
 db.pengguna.create_index('nik', unique=True)
 db.pangkalan.create_index(
     [('nama', TEXT), ('alamat', TEXT)], name='text_index')
-
-
-@app.get("/")
-async def main():
-    return FileResponse('pages/index.html')
 
 
 @app.get('/pengguna')
@@ -210,11 +207,6 @@ def kirim_email_verifikasi(receiver: str):
         return {'status': 'failed', 'code': e.recipients[receiver][0], 'message': str(e)}
     finally:
         smtp.close()
-
-
-@app.get('/konfirmasi-e-tiket/{nik}/{key}')
-def konfirmasi_e_tiket_page():
-    return FileResponse('pages/konfirmasi-e-tiket.html')
 
 
 @app.post('/konfirmasi-e-tiket/{nik}/{key}')
