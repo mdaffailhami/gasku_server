@@ -78,3 +78,17 @@ def update_pangkalan(id: str, data: dict = Body()):
         return {'status': 'failed', 'message': str(e)}
     else:
         return {'status': 'success'}
+
+
+@pangkalan_router.delete('/pangkalan/{id}')
+def delete_pangkalan(id: str):
+    try:
+        response = db.pangkalan.delete_one({'_id': ObjectId(id)})
+
+        if response.deleted_count == 0:
+            return {'status': 'failed', 'message': 'Pangkalan tidak ditemukan'}
+
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}
+    else:
+        return {'status': 'success'}
