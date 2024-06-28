@@ -12,7 +12,8 @@ pangkalan_router = APIRouter()
 @pangkalan_router.get('/pangkalan')
 def get_pangkalan(search: str | None = None, tanpa_foto: str | None = 'false'):
     queries = {}
-    if search is not None:
+
+    if search is not None and len(search) > 0:
         queries = {'$text': {'$search': search}}
 
     options = {}
