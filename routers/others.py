@@ -44,7 +44,8 @@ def lapor_pangkalan(laporan: LaporanPangkalan):
     em['subject'] = 'Laporan Pangkalan GasKu'
 
     code = str(random.randint(10000, 99999))
-    content = f'''Pelapor: {laporan.nama_pelapor} ({laporan.nim_pelapor})
+    content = f'''Jenis Laporan: {laporan.jenis_laporan}
+Pelapor: {laporan.nama_pelapor} ({laporan.nim_pelapor})
 Pangkalan: {laporan.nama_pangkalan} ({laporan.id_pangkalan})
 Tanggal: {laporan.tanggal}
 Deskripsi:
