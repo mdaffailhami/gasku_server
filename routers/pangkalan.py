@@ -10,13 +10,17 @@ pangkalan_router = APIRouter()
 
 
 @pangkalan_router.get('/pangkalan')
-def get_pangkalan(search: str | None = None):
+def get_pangkalan(search: str | None = None, tanpa_foto: str | None = 'false'):
+    queries = {}
+    if search is not None:
+        queries = {'$text': {'$search': search}}
+
+    options = {}
+    if tanpa_foto == 'true':
+        options = {"foto": 0}
+
     try:
-        pangkalan = list(
-            db.pangkalan.find()
-        ) if search is None else list(
-            db.pangkalan.find({'$text': {'$search': search}})
-        )
+        pangkalan = list(db.pangkalan.find(queries, options))
 
         for x in pangkalan:
             x['_id'] = str(x['_id'])
