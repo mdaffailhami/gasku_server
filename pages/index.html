@@ -154,23 +154,11 @@
                 <!-- /.card-header -->
                 <div class="card-body">
                   <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
-                    <ol class="carousel-indicators">
-                      <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-                      <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-                      <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+                    <ol class="carousel-indicators" id="carousel-indicator">
+
                     </ol>
-                    <div class="carousel-inner">
-                      <div class="carousel-item active">
-                        <img class="d-block w-100" src="../static/img/1.jpg" alt="First slide" />
-                      </div>
-                      <div class="carousel-item">
-                        <img class="d-block w-100"
-                          src="https://placehold.it/900x500/3c8dbc/ffffff&text=I+Love+Bootstrap" alt="Second slide" />
-                      </div>
-                      <div class="carousel-item">
-                        <img class="d-block w-100"
-                          src="https://placehold.it/900x500/f39c12/ffffff&text=I+Love+Bootstrap" alt="Third slide" />
-                      </div>
+                    <div class="carousel-inner" id="carousel">
+
                     </div>
                     <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
                       <span class="carousel-control-custom-icon" aria-hidden="true">
@@ -199,17 +187,17 @@
                 <div class="card-body">
                   <div class="callout callout-info">
                     <h5>Nama Pangkalan</h5>
-                    <p>Pangkalan Rahmi</p>
+                    <p id="namaPangkalan"></p>
                   </div>
                   <div class="callout callout-info">
                     <h5>Email</h5>
-                    <p>pangkalanrahmi@gmail.com</p>
+                    <p id="emailPangkalan"></p>
                   </div>
                   <div class="callout callout-danger">
                     <div class="row">
                       <div class="col-md-8">
                         <h5>Sisa Stok</h5>
-                        <p>12</p>
+                        <p id="stokPangkalan"></p>
                       </div>
                       <div class="col-md-2">
                         <a class="btn btn-app" href="/form-update">
@@ -276,8 +264,40 @@
   <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
   <script src="../static/dist/js/pages/dashboard2.js"></script>
 
-  <script src="/static/assets/js/cekLogin.js">
+  <script src="/static/assets/js/cekLogin.js"></script>
+  <script>
+    const namaPangkalan = document.querySelector('#namaPangkalan')
+    const emailPangkalan = document.querySelector('#emailPangkalan')
+    const stok = document.querySelector('#stokPangkalan')
+    const carousel = document.querySelector('#carousel')
+    const carouselInd = document.querySelector('#carousel-indicator')
+    const waktuTunggu = setInterval(() => {
+      if (pangkalan != null) {
+        pangkalanDapat()
+      }
+    }, 500);
 
+    function pangkalanDapat() {
+
+      clearInterval(waktuTunggu)
+      namaPangkalan.innerHTML = pangkalan.nama
+      emailPangkalan.innerHTML = pangkalan.email
+      stok.innerHTML = pangkalan.stok
+
+
+      pangkalan.foto.forEach((foto, i) => {
+        carouselInd.innerHTML += `
+          <li data-target="#carouselExampleIndicators" data-slide-to="${i}" class="${i==0? 'active':''}""></li>
+        `
+        carousel.innerHTML += `
+          <div class="carousel-item ${i==0? 'active':''}">
+            <img class="d-block w-100" src="data:image/jpeg;base64,${foto}" alt="" height="600" />
+          </div>
+        `
+      });
+      // car.setAttribute('src', 'data:image/jpeg;base64,' + pangkalan.foto)
+
+    }
   </script>
 
 
