@@ -107,3 +107,23 @@ def delete_pangkalan(id: str):
         return {'status': 'failed', 'message': str(e)}
     else:
         return {'status': 'success'}
+
+
+@pangkalan_router.patch('/pangkalan/ganti-kata-sandi/{email}')
+def ganti_kata_sandi(email: str, kata_sandi: str = Body(embed=True)):
+    hashed_kata_sandi = sha1()
+    hashed_kata_sandi.update(kata_sandi.encode('utf-8'))
+    kata_sandi = hashed_kata_sandi.hexdigest()
+
+    try:
+        response = db.pangkalan.update_one(
+            {'email': email},
+            {"$set": {'kata_sandi': kata_sandi}}
+        )
+
+        if response.matched_count == 0:
+            return {'status': 'failed', 'message': 'Pangkalan tidak ditemukan'}
+
+        return {'status': 'success'}
+    except Exception as e:
+        return {'status': 'failed', 'message': str(e)}

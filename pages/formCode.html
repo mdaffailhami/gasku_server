@@ -1,49 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Generate Code</title>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="../static/assets/css/style.css"
-    />
-    <link href="../static/assets/css/bootstrap.min.css" rel="stylesheet" />
-  </head>
 
-  <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-          <div class="card border-0 shadow rounded-3 my-5">
-            <div class="card-body p-4 p-sm-5">
-              <h5 class="card-title text-center mb-5 fw-light fs-5">
-                Masukkan Code
-              </h5>
-              <form action="" method="">
-                <div class="form-floating mb-3">
-                  <input type="text" class="form-control" id="floatingInput" />
-                </div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generate Code</title>
+  <link rel="stylesheet" type="text/css" href="../static/assets/css/style.css" />
+  <link href="../static/assets/css/bootstrap.min.css" rel="stylesheet" />
+</head>
 
-                <hr class="my-4" />
-                <div class="d-grid">
-                  <button
-                    class="btn btn-primary btn-login text-uppercase fw-bold mb-2"
-                  >
-                    Kirim Code
-                  </button>
-                  <a
-                    href="/form-lupa-password"
-                    class="btn btn-danger btn-lupa text-uppercase fw-bold"
-                    >Kembali</a
-                  >
-                </div>
-              </form>
-            </div>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+        <div class="card border-0 shadow rounded-3 my-5">
+          <div class="card-body p-4 p-sm-5">
+            <h5 class="card-title text-center mb-5 fw-light fs-5">
+              Masukkan Code
+            </h5>
+            <form action="" method="">
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="kode" />
+              </div>
+
+              <hr class="my-4" />
+              <div class="d-grid">
+                <button class="btn btn-primary btn-login text-uppercase fw-bold mb-2" id="btnKode">
+                  Kirim Code
+                </button>
+
+              </div>
+            </form>
           </div>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+
+  <script>
+    const email = localStorage.getItem('email')
+    const kodeLocal = localStorage.getItem('kode')
+
+
+    if (email == null || kodeLocal == null) {
+      window.location.pathname = '/form-lupa-password'
+    } else {
+      const kode = document.querySelector('#kode')
+      const btnKode = document.querySelector('#btnKode')
+
+      btnKode.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        if (kode.value != kodeLocal) {
+
+          return alert('Kode Verifikasi tidak sesuai')
+
+        }
+        window.localStorage.setItem('isValid', 'true')
+        window.location.pathname = '/form-password-baru'
+
+
+      })
+
+    }
+  </script>
+</body>
+
 </html>

@@ -77,7 +77,6 @@ def update_pengguna(nik: str, pengguna: Pengguna, hash: str | None = 'false'):
 
 @pengguna_router.patch('/ganti-kata-sandi/{nik}')
 def ganti_kata_sandi(nik: str, kata_sandi: str = Body(embed=True)):
-    print(kata_sandi)
     hashed_kata_sandi = sha1()
     hashed_kata_sandi.update(kata_sandi.encode('utf-8'))
     kata_sandi = hashed_kata_sandi.hexdigest()

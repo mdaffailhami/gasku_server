@@ -29,6 +29,11 @@ def form_lupa_password():
     return FileResponse('pages/formLupaPassword.html')
 
 
+@pages_router.get("/form-password-baru")
+def form_password_baru():
+    return FileResponse('pages/formPasswordBaru.html')
+
+
 @pages_router.get("/form-riwayat")
 def form_riwayat():
     return FileResponse('pages/formRiwayat.html')
