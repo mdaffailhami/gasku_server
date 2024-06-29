@@ -31,10 +31,24 @@ def get_pangkalan(search: str | None = None, tanpa_foto: str | None = 'false'):
         return {'status': 'failed', 'message': str(e)}
 
 
-@pangkalan_router.get('/pangkalan/{id}')
-def get_pangkalan_by_id(id: str):
+# @pangkalan_router.get('/pangkalan/{id}')
+# def get_pangkalan_by_id(id: str):
+#     try:
+#         pangkalan = db.pangkalan.find_one({'_id': ObjectId(id)})
+
+#         if pangkalan == None:
+#             return {'status': 'failed', 'pangkalan': pangkalan, 'message': 'Pangkalan tidak ditemukan'}
+
+#         pangkalan['_id'] = str(pangkalan['_id'])
+
+#         return {'status': 'success', 'pangkalan': pangkalan}
+#     except Exception as e:
+#         return {'status': 'failed', 'message': str(e)}
+    
+@pangkalan_router.get('/pangkalan/{email}')
+def get_pangkalan_by_email(email: str):
     try:
-        pangkalan = db.pangkalan.find_one({'_id': ObjectId(id)})
+        pangkalan = db.pangkalan.find_one({'email': email})
 
         if pangkalan == None:
             return {'status': 'failed', 'pangkalan': pangkalan, 'message': 'Pangkalan tidak ditemukan'}

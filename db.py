@@ -6,6 +6,7 @@ database_url = os.getenv('DATABASE_URL')
 db = MongoClient(database_url).gasku
 
 db.pengguna.create_index('nik', unique=True)
+db.pangkalan.create_index('email', unique=True)
 db.pangkalan.create_index(
     [
         ('nama', TEXT),
