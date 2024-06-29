@@ -152,13 +152,13 @@
                 <div class="card-body">
                   <div class="form-group">
                     <label for="exampleInputEmail1">Isi Stok</label>
-                    <input type="number" class="form-control" id="exampleInputEmail1" placeholder="Stok" />
+                    <input type="number" class="form-control" id="stok" placeholder="Stok" />
                   </div>
                 </div>
                 <!-- /.card-body -->
 
                 <div class="card-footer">
-                  <button type="submit" class="btn btn-primary">
+                  <button type="submit" class="btn btn-primary" id="btnStok">
                     Simpan Perubahan
                   </button>
                   <a href="/" class="btn btn-danger">Kembali</a>
@@ -204,43 +204,55 @@
   <script src="../static/dist/js/demo.js"></script>
   <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
   <script src="../static/dist/js/pages/dashboard2.js"></script>
-  <script src="/static/assets/js/cekLogin.js">
-
-  </script>
+  <script src="/static/assets/js/cekLogin.js"></script>
 
 
   <script>
-    const url = 'https://gasku.vercel.app/pangkalan/667ea5077398301fdb18f1b3';
+    let stok = document.querySelector('#stok');
+    let btnStok = document.querySelector('#btnStok');
 
-    const data = {
-      stok: '12'
-    };
+    btnStok.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        // console.log(typeof (stok.value))
 
-    const options = {
-      method: 'PATCH', // HTTP method
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data), // Convert the data to a JSON string
-    };
+        const patchStok = await fetch('/pangkalan/' + pangkalan._id, {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            stok: Number(stok.value)
+          })
+        })
+        const jsonStok = await patchStok.json()
+        alert('Stok berhasil diupdate')
+        window.location.pathname = '/'
+      } catch (error) {
+        console.log(error)
+        alert(error)
+      }
 
-    // Make the fetch request
-    fetch(url, options)
-      .then(response => {
-        if (!response.ok) {
-          // Handle the error response
-          throw new Error('Error' + response.statusText);
-        }
-        return response.json(); // Parse the JSON response
-      })
-      .then(data => {
-        // Handle the successful response
-        console.log('Success:', data);
-      })
-      .catch(error => {
-        // Handle any errors that occurred during the fetch
-        console.error('Error:', error);
-      });
+    })
+
+    let waktuTunggu = setInterval(() => {
+      console.log(pangkalan)
+
+      if (pangkalan != null) {
+        pangkalanDapat()
+      }
+    }, 500);
+
+    function pangkalanDapat() {
+
+      console.log('pangkalan dapat coy')
+      clearInterval(waktuTunggu)
+      stok.value = pangkalan.stok;
+
+    }
+
+    const url = '/pangkalan/667ea5077398301fdb18f1b3';
   </script>
 
 

@@ -1,3 +1,5 @@
+let pangkalan = null
+
 async function getPage() {
     let email = localStorage.getItem('email')
     let pass = localStorage.getItem('pass')
@@ -14,6 +16,8 @@ async function getPage() {
         if (getJson.status == 'failed' || pass != getJson.pangkalan.kata_sandi) {
             return window.location.pathname = '/form-login'
         }
+
+        pangkalan = getJson.pangkalan;
 
         document.body.classList.remove('d-none')
 
