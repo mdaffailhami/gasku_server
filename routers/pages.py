@@ -38,6 +38,10 @@ def form_riwayat():
 def form_update():
     return FileResponse('pages/formUpdate.html')
 
+@pages_router.get("/logout")
+def logout():
+    return FileResponse('pages/logout.html')
+
 
 @pages_router.get('/konfirmasi-e-tiket/{nik}/{key}')
 def konfirmasi_e_tiket_page():
