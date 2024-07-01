@@ -1,14 +1,21 @@
+const email = localStorage.getItem('email');
+const pass = localStorage.getItem('pass');
+
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, prop) => searchParams.get(prop),
 });
+
+const nik = window.location.pathname.split('/').at(-2);
+const key = window.location.pathname.split('/').at(-1);
+
+if (email == null || pass == null) {
+  window.location.pathname = `/form-login/konfirmasi-e-tiket/${nik}/${key}`;
+}
 
 const modal = new bootstrap.Modal(document.getElementById('modal'), {});
 const konten = document.getElementById('konten');
 const tombolKonfirmasi = document.getElementById('tombol-konfirmasi');
 const loading = document.getElementById('loading');
-
-const nik = window.location.pathname.split('/').at(-2);
-const key = window.location.pathname.split('/').at(-1);
 
 async function konfirmasiETiket() {
   // Start loading

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login Pangkalan</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/static/assets/css/style.css"
+    />
+    <link href="/static/assets/css/bootstrap.min.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+          <div class="card border-0 shadow rounded-3 my-5">
+            <div class="card-body p-4 p-sm-5">
+              <h5 class="card-title text-center mb-5 fw-light fs-5">
+                Masuk Pangkalan
+              </h5>
+              <form action="" method="">
+                <div class="form-floating mb-3">
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="email"
+                    placeholder=""
+                  />
+                  <label for="floatingInput">Alamat Email</label>
+                </div>
+                <div class="form-floating mb-3">
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    placeholder="Password"
+                  />
+                  <label for="floatingPassword">Password</label>
+                </div>
+
+                <hr class="my-4" />
+                <div class="d-grid">
+                  <button
+                    class="btn btn-primary btn-login text-uppercase fw-bold mb-2"
+                    id="buttonSubmit"
+                  >
+                    Masuk
+                  </button>
+                  <a
+                    href="/form-lupa-password"
+                    class="btn btn-danger btn-lupa text-uppercase fw-bold"
+                    >Lupa Password</a
+                  >
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"
+      integrity="sha512-a+SUDuwNzXDvz4XrIcXHuCf089/iJAoN4lmrXJg18XnduKK6YlDHNRalv4yd1N40OKI80tFidF+rqTFKGPoWFQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      const nik = window.location.pathname.split('/').at(-2);
+      const key = window.location.pathname.split('/').at(-1);
+
+      let email = document.querySelector('#email');
+      let pass = document.querySelector('#password');
+      let btn = document.querySelector('#buttonSubmit');
+
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        try {
+          let getEmail = await fetch('/pangkalan/' + email.value);
+          let getJson = await getEmail.json();
+
+          if (getJson.status == 'failed') {
+            return alert(getJson.message);
+          }
+
+          let passHash = CryptoJS.SHA1(pass.value).toString();
+
+          if (passHash != getJson.pangkalan.kata_sandi) {
+            alert('Password tidak sesuai');
+            return;
+          }
+
+          window.localStorage.setItem('email', email.value);
+          window.localStorage.setItem('pass', passHash);
+
+          window.location.pathname = `/konfirmasi-e-tiket/${nik}/${key}`;
+        } catch (error) {
+          console.log(error);
+        }
+      });
+    </script>
+  </body>
+</html>
